@@ -31,5 +31,5 @@ app.post("/send-email", (request, response) => {
         .then(() => response.json({ message: "Email sent successfully" }).status(200))
         .catch((error) => response.json({ message: error.message }).status(error.code));
 });
-app.listen(3333, () => console.log("Server is running!"));
+app.listen(3333, () => console.log(`Server is running! on port: ${3333}`));
 
