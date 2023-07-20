@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const Multer = require('multer');
+const { Readable } = require('stream');
 
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { google } = require('googleapis');
@@ -114,16 +115,6 @@ app.post("/add-row", async (request, response) => {
   return response.json({ message: "Row added successfully" }).status(200);
 });
 const multer = Multer({
-  storage: Multer.diskStorage({
-    destination: function (req, file, callback) {
-      console.log(file);
-      callback(null, `${__dirname}/uploads`);
-    },
-    filename: function (req, file, callback) {
-      console.log(file);
-      callback(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
-    },
-  }),
   limits: {
     fileSize: 5 * 1024 * 1024,
   },
@@ -173,54 +164,46 @@ app.post('/file', multer.single('file'), async (req, res) => {
 
     // Function to upload the file to Google Drive
     const uploadFileToDrive = async () => {
-
       const fileMetadata = {
         name: req.file.filename,
         parents: [process.env.GOOGLE_DRIVE_FOLDER_ID],
       };
       const media = {
         mimeType: req.file.mimetype,
-        body: fs.createReadStream(req.file.path),
+        body: Readable.from(req.file.buffer),
       };
+
+      // Use the drive.files.create method to upload the file directly to Google Drive
       const response = await drive.files.create({
         resource: fileMetadata,
         media: media,
-        fields: 'id',
+        fields: 'id, webViewLink', // Return both the file ID and the web view link
       });
 
-      // Log the file ID from Google Drive (you can store this in your database if needed)
+      // Log the file ID and web view link from Google Drive
       console.log('File ID:', response.data.id);
+      console.log('File Link:', response.data.webViewLink);
 
-      // Clean up: remove the uploaded file from the server
-      fs.unlinkSync(req.file.path);
-
-      return response.data.id;
+      return response.data; // Return both file ID and web view link
     };
 
     // Call the async function to upload the file
-    const fileId = await uploadFileToDrive();
+    const fileInfo = await uploadFileToDrive();
+    const fileId = fileInfo.id;
     await setFilePublicAccess(fileId);
 
-    // Get the file link using the fileId
-    
-    // Clean up: remove the uploaded file from the server
-    fs.unlink(req.file.path, (err) => {
-      if (err) {
-        console.error('Error deleting the file:', err);
-      } else {
-        console.log('File deleted successfully');
-      }
-    });
-    
-    const fileLink = await getFileLink(fileId);
     // Respond with the file link
-    res.status(200).json({ message: "File uploaded successfully", fileLink });
+    res.status(200).json({ message: "File uploaded successfully", fileLink: fileInfo.webViewLink });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "File upload failed" });
   }
 });
 
-
-app.listen(3333, () => console.log(`Server is running! on port: ${3333}`));
+const PORT = process.env.PORT || 3333;
+app.listen(PORT, () => {
+  //console log the url to the server
+  console.log(`Server is running at address: ${``}`)
+  console.log(`Server is running! on port: ${PORT}`)
+});
 
