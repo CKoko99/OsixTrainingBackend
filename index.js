@@ -61,6 +61,7 @@ const addRowToSheet = async (sheetName, headerData, row) => {
       } catch (error) {
         console.log("Sheet has no header row.");
         await sheet.setHeaderRow(headerData);
+        await sheet.addRow(row);
       }
     }
 
