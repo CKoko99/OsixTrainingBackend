@@ -7,7 +7,23 @@ const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { google } = require('googleapis');
 const { JWT } = require('google-auth-library')
 const fs = require('fs');
+const busboy = require('busboy');
 require('dotenv').config();
+
+//Cros Setup to limit domainds
+const allowedOrigins = ["https://example.co", "http://localhost:3000"];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      // Allow the request
+      callback(null, true);
+    } else {
+      // Deny the request
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+};
 
 //SendGrid Email Service Setup
 const sgMail = require('@sendgrid/mail')
@@ -74,7 +90,7 @@ const addRowToSheet = async (sheetName, headerData, row) => {
 
 
 const app = express();
-app.use(cors())
+app.use(cors(corsOptions))
 app.use(express.json());
 
 app.get("/", (request, response) => {
@@ -153,53 +169,67 @@ const setFilePublicAccess = async (fileId) => {
 };
 
 // Route to handle the file upload
-app.post('/file', multer.single('file'), async (req, res) => {
+
+app.post('/file', async (req, res) => {
   try {
-    console.log(req.file); // The uploaded file can be accessed using req.file
-    console.log(req.body); // Other form fields can be accessed using req.body
+    const bb = busboy({ headers: req.headers });
 
-    if (!req.file) {
-      res.status(400).send("No file uploaded.");
-      return;
-    }
+    let fileStream;
+    let fileName;
+    let mimeType;
 
-    // Function to upload the file to Google Drive
-    const uploadFileToDrive = async () => {
-      const fileMetadata = {
-        name: req.file.filename,
-        parents: [process.env.GOOGLE_DRIVE_FOLDER_ID],
-      };
-      const media = {
-        mimeType: req.file.mimetype,
-        body: Readable.from(req.file.buffer),
-      };
+    bb.on('file', async (fieldname, file, filename, encoding, mimetype) => {
+      fileStream = file;
+      fileName = filename;
+      mimeType = mimetype;
 
-      // Use the drive.files.create method to upload the file directly to Google Drive
-      const response = await drive.files.create({
-        resource: fileMetadata,
-        media: media,
-        fields: 'id, webViewLink', // Return both the file ID and the web view link
-      });
+      // Function to upload the file to Google Drive
+      const uploadFileToDrive = async () => {
+        const fileMetadata = {
+          name: fileName,
+          parents: [process.env.GOOGLE_DRIVE_FOLDER_ID],
+        };
+        const media = {
+          mimeType: mimeType,
+          body: fileStream,
+        };
 
-      // Log the file ID and web view link from Google Drive
-      console.log('File ID:', response.data.id);
-      console.log('File Link:', response.data.webViewLink);
+        // Use the drive.files.create method to upload the file directly to Google Drive
+        try {
+          const response = await drive.files.create({
+            resource: fileMetadata,
+            media: media,
+            fields: 'id, webViewLink', // Return both the file ID and the web view link
+          });
 
-      return response.data; // Return both file ID and web view link
-    };
+          // Log the file ID and web view link from Google Drive
+          console.log('File ID:', response.data.id);
+          console.log('File Link:', response.data.webViewLink);
 
-    // Call the async function to upload the file
-    const fileInfo = await uploadFileToDrive();
-    const fileId = fileInfo.id;
-    await setFilePublicAccess(fileId);
+          return response.data; // Return both file ID and web view link
+        } catch (error) {
 
-    // Respond with the file link
-    res.status(200).json({ message: "File uploaded successfully", fileLink: fileInfo.webViewLink });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "File upload failed" });
+          console.log('Error uploading the file to Google Drive:', error.message);
+          throw error;
+        }
+      }
+
+
+      const fileInfo = await uploadFileToDrive();
+
+      const fileId = fileInfo.id;
+      await setFilePublicAccess(fileId);
+      res.status(200).json({ message: 'File uploaded successfully', fileLink: fileInfo.webViewLink });
+
+    });
+    req.pipe(bb);
+  } catch (error) {
+    console.log('Error uploading the file to Google Drive:', error.message);
+    throw error;
   }
 });
+
+
 
 const PORT = process.env.PORT || 3333;
 app.listen(PORT, () => {
