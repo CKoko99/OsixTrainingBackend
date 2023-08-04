@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const md5 = require("md5");
 const path = require('path');
 const mime = require('mime-types');
+const streamifier = require('streamifier');
 
 const cors = require('cors');
 const Multer = require('multer');
@@ -100,7 +101,7 @@ app.use(cors(corsOptions))
 
 
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
+//app.use('/uploads', express.static('uploads'));
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*'); // Replace '*' with the specific allowed origin if needed
@@ -185,6 +186,9 @@ const setFilePublicAccess = async (fileId) => {
 };
 
 
+
+const CHUNKS = {};
+
 app.post('/upload', async (req, res) => {
   const { name, currentChunkIndex, totalChunks } = req.query;
   const firstChunk = parseInt(currentChunkIndex) === 0;
@@ -192,19 +196,47 @@ app.post('/upload', async (req, res) => {
   const ext = name.split('.').pop();
   const data = req.body.toString().split(',')[1];
   const buffer = Buffer.from(data, 'base64');
-  const tmpFilename = 'tmp_' + md5(name + req.ip) + '.' + ext;
-  if (firstChunk && fs.existsSync('./uploads/' + tmpFilename)) {
-    fs.unlinkSync('./uploads/' + tmpFilename);
-  }
-  fs.appendFileSync('./uploads/' + tmpFilename, buffer);
-  if (lastChunk) {
-    console.log("last chunk")
-    const finalFilename = md5(Date.now()).substr(0, 6) + '.' + ext;
-    fs.renameSync('./uploads/' + tmpFilename, './uploads/' + finalFilename);
-    const response = await uploadToDrive(finalFilename);
-    res.status(200).json(response);
 
-    await unlinkAsync('./uploads/' + finalFilename);
+  // Store the chunk in an array based on the chunk index
+  if (!CHUNKS[name]) {
+    CHUNKS[name] = [];
+  }
+  CHUNKS[name][currentChunkIndex] = buffer;
+
+  if (lastChunk) {
+    // Concatenate all the chunks into a single buffer
+    const concatenatedBuffer = Buffer.concat(CHUNKS[name]);
+
+    try {
+      // Create the file on Google Drive using the concatenated buffer
+      const fileResource = await drive.files.create({
+        resource: {
+          name: name,
+          mimeType: mime.lookup(ext) || 'application/octet-stream',
+          parents: [process.env.GOOGLE_DRIVE_FOLDER_ID],
+        },
+        media: {
+          mimeType: mime.lookup(ext) || 'application/octet-stream',
+          body: streamifier.createReadStream(concatenatedBuffer), // Convert buffer to a readable stream
+        },
+        fields: 'id, webViewLink',
+      });
+
+      const fileId = fileResource.data.id;
+      await setFilePublicAccess(fileId);
+
+      // Clean up the chunks array after successful upload
+      delete CHUNKS[name];
+
+      res.status(200).json({
+        message: 'File uploaded successfully',
+        fileLink: fileResource.data.webViewLink,
+        fileId: fileId,
+      });
+    } catch (error) {
+      // Handle error during Google Drive upload
+      res.status(500).json({ error: 'Error uploading file to Google Drive' });
+    }
   } else {
     res.json('ok');
   }
