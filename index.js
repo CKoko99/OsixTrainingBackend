@@ -115,7 +115,7 @@ app.get("/", (request, response) => {
 
   return response.json({ message: process.env.SENDGRID_API_KEY }).status(200);
 });
-app.post("/send-emai", (request, response) => {
+app.post("/send-email", (request, response) => {
   console.log("here")
   console.log(request.body)
   const { to, subject, text, html } = request.body;
