@@ -4,7 +4,7 @@ const md5 = require("md5");
 const path = require('path');
 const mime = require('mime-types');
 const streamifier = require('streamifier');
-
+const nodemailer = require('nodemailer');
 const cors = require('cors');
 const Multer = require('multer');
 const { Readable } = require('stream');
@@ -95,6 +95,7 @@ const addRowToSheet = async (sheetName, headerData, row) => {
 
 
 
+
 const app = express();
 app.use(bodyParser.raw({ type: 'application/octet-stream', limit: '100mb' }));
 app.use(cors(corsOptions))
@@ -111,9 +112,8 @@ app.use((req, res, next) => {
 });
 
 app.get("/", (request, response) => {
-  console.log(process.env.SENDGRID_API_KEY);
-
-  return response.json({ message: process.env.SENDGRID_API_KEY }).status(200);
+  console.log("Server")
+  return response.json({ message: "Server" }).status(200);
 });
 app.post("/send-email", (request, response) => {
   console.log("here")
@@ -123,6 +123,48 @@ app.post("/send-email", (request, response) => {
     .then(() => response.json({ message: "Email sent successfully" }).status(200))
     .catch((error) => response.json({ message: error.message }).status(error.code));
 });
+
+const OAUTHCREDENTIALS = JSON.parse(fs.readFileSync('gmailOAuth.json'));
+const gmailOAuth = new google.auth.OAuth2(OAUTHCREDENTIALS.client_id, OAUTHCREDENTIALS.client_secret);
+gmailOAuth.setCredentials({ refresh_token: OAUTHCREDENTIALS.refresh_token });
+async function sendMail() {
+  try {
+    console.log(OAUTHCREDENTIALS)
+    const accessToken = await gmailOAuth.getAccessToken();
+    console.log(accessToken)
+    const transport = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        type: 'OAuth2',
+        user: 'Courtney@getaiu.com',
+        clientId: OAUTHCREDENTIALS.client_id,
+        clientSecret: OAUTHCREDENTIALS.client_secret,
+        refreshToken: OAUTHCREDENTIALS.refresh_token,
+        accessToken: accessToken,
+      },
+    });
+    const mailOptions = {
+      from: 'courtney@getaiu.com',
+      to: 'courtney@getaiu.com',
+      subject: 'Test',
+      text: 'Test 2',
+      html: '<p>Test 3</p>',
+    };
+    const result = await transport.sendMail(mailOptions);
+    return result;
+
+
+  } catch (error) {
+    console.log(error)
+  }
+}
+sendMail().then((result) => console.log('Email sent...', result)).catch((error) => console.log(error.message));
+app.post("/send-email2", (request, response) => {
+  console.log("here")
+  console.log(request.body)
+  const { to, subject, text, html } = request.body;
+});
+
 app.post("/add-row", async (request, response) => {
   console.log(request.body)
   const row = []
