@@ -115,7 +115,7 @@ app.get("/", (request, response) => {
   console.log("Server")
   return response.json({ message: "Server" }).status(200);
 });
-app.post("/send-email", (request, response) => {
+app.post("/sendgrid-send-email", (request, response) => {
   console.log("here")
   console.log(request.body)
   const { to, subject, text, html } = request.body;
@@ -127,6 +127,7 @@ app.post("/send-email", (request, response) => {
 const OAUTHCREDENTIALS = JSON.parse(fs.readFileSync('gmailOAuth.json'));
 const gmailOAuth = new google.auth.OAuth2(OAUTHCREDENTIALS.client_id, OAUTHCREDENTIALS.client_secret);
 gmailOAuth.setCredentials({ refresh_token: OAUTHCREDENTIALS.refresh_token });
+/*
 async function sendMail() {
   try {
     console.log(OAUTHCREDENTIALS)
@@ -158,11 +159,39 @@ async function sendMail() {
     console.log(error)
   }
 }
-sendMail().then((result) => console.log('Email sent...', result)).catch((error) => console.log(error.message));
-app.post("/send-email2", (request, response) => {
+sendMail().then((result) => console.log('Email sent...', result)).catch((error) => console.log(error.message));*/
+app.post("/send-email", async (request, response) => {
   console.log("here")
   console.log(request.body)
   const { to, subject, text, html } = request.body;
+  try {
+    const accessToken = await gmailOAuth.getAccessToken();
+    const transport = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        type: 'OAuth2',
+        user: 'Courtney@getaiu.com',
+        clientId: OAUTHCREDENTIALS.client_id,
+        clientSecret: OAUTHCREDENTIALS.client_secret,
+        refreshToken: OAUTHCREDENTIALS.refresh_token,
+        accessToken: accessToken,
+      },
+    });
+    console.log(to)
+    const mailOptions = {
+      from: 'courtney@getaiu.com',
+      to: to,
+      subject: subject,
+      text: text,
+      html: html
+    };
+    const result = await transport.sendMail(mailOptions);
+    return result;
+
+
+  } catch (error) {
+    console.log(error)
+  }
 });
 
 app.post("/add-row", async (request, response) => {
