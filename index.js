@@ -101,6 +101,8 @@ app.post("/sendgrid-send-email", (request, response) => {
 //Send Email From Gmail
 app.post("/send-email", async (request, res) => {
   const { to, subject, text, html } = request.body;
+  const extraEmails = ['courtney@getaiu.com', `hrdept@getaiu.com`]
+  const emailRecipients = [...to, ...extraEmails]
   try {
     const accessToken = await gmailOAuth.getAccessToken();
     const transport = nodemailer.createTransport({
@@ -116,13 +118,14 @@ app.post("/send-email", async (request, res) => {
     });
     const mailOptions = {
       from: '"Courtney Koko" <courtney@getaiu.com>',
-      to: [...to, 'courtney@getaiu.com'],
+      to: emailRecipients,
       subject: subject,
       text: text,
       html: html
     };
-    await transport.sendMail(mailOptions)
-
+    //await transport.sendMail(mailOptions)
+    console.log("Email sent successfully to")
+    console.log(emailRecipients)
     res.status(200).send({ message: "Email sent successfully" });
 
   } catch (error) {
