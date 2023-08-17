@@ -109,7 +109,7 @@ app.post("/send-email", async (request, res) => {
       service: 'gmail',
       auth: {
         type: 'OAuth2',
-        user: 'Courtney@getaiu.com',
+        user: 'noreply@getaiu.com',
         clientId: OAUTHCREDENTIALS.client_id,
         clientSecret: OAUTHCREDENTIALS.client_secret,
         refreshToken: OAUTHCREDENTIALS.refresh_token,
@@ -117,13 +117,13 @@ app.post("/send-email", async (request, res) => {
       },
     });
     const mailOptions = {
-      from: '"Courtney Koko" <courtney@getaiu.com>',
+      from: '"AI United Agent Training" <noreply@getaiu.com>',
       to: emailRecipients,
       subject: subject,
       text: text,
       html: html
     };
-    //await transport.sendMail(mailOptions)
+    await transport.sendMail(mailOptions)
     console.log("Email sent successfully to")
     console.log(emailRecipients)
     res.status(200).send({ message: "Email sent successfully" });
@@ -131,7 +131,6 @@ app.post("/send-email", async (request, res) => {
   } catch (error) {
     console.log(error)
     res.status(500).send({ message: "An error occurred while sending the email" });
-
   }
 });
 
