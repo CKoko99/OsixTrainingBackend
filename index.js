@@ -258,6 +258,7 @@ app.post('/upload', async (req, res) => {
       });
     } catch (error) {
       // Handle error during Google Drive upload
+      delete CHUNKS[name]; // Clean up the chunks array in case of error
       res.status(500).json({ error: 'Error uploading file to Google Drive' });
     }
   } else {
