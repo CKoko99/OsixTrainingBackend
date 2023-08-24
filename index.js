@@ -17,7 +17,7 @@ const busboy = require('busboy');
 require('dotenv').config();
 
 //Cros Setup to limit domainds
-const allowedOrigins = ["http://statewidenetwork.com", "http://localhost:3000"];
+const allowedOrigins = ["http://usinsurancetraining.com", "https://usinsurancetraining.com", "http://localhost:3000"];
 
 const corsOptions = {
   origin: function (origin, callback) {
