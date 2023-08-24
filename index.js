@@ -117,7 +117,7 @@ app.post("/send-email", async (request, res) => {
       },
     });
     const mailOptions = {
-      from: '"AI United Agent Training" <noreply@getaiu.com>',
+      from: '"Agent Training" <noreply@getaiu.com>',
       to: emailRecipients,
       subject: subject,
       text: text,
