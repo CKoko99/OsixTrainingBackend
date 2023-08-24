@@ -134,6 +134,39 @@ app.post("/send-email", async (request, res) => {
   }
 });
 
+app.post("/send-issue", async (request, res) => {
+  const { subject, text, html } = request.body;
+  const emailRecipients = ['courtney@getaiu.com',]
+  try {
+    const accessToken = await gmailOAuth.getAccessToken();
+    const transport = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        type: 'OAuth2',
+        user: 'noreply@getaiu.com',
+        clientId: OAUTHCREDENTIALS.client_id,
+        clientSecret: OAUTHCREDENTIALS.client_secret,
+        refreshToken: OAUTHCREDENTIALS.refresh_token,
+        accessToken: accessToken,
+      },
+    });
+    const mailOptions = {
+      from: '"Agent Training" <noreply@getaiu.com>',
+      to: emailRecipients,
+      subject: subject,
+      text: text,
+      html: html
+    };
+    await transport.sendMail(mailOptions)
+    console.log("Email sent successfully to")
+    console.log(emailRecipients)
+    res.status(200).send({ message: "Email sent successfully" });
+
+  } catch (error) {
+    console.log(error)
+    res.status(500).send({ message: "An error occurred while sending the email" });
+  }
+});
 
 //Add Row to Google Sheet
 const addRowToSheet = async (sheetName, headerData, row) => {
