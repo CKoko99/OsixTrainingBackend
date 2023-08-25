@@ -31,3 +31,6 @@ jobs:
         run: |
           # Replace with your deployment commands
           gcloud app deploy
+      
+      - name: Test
+        run: curl "${{ steps.deploy.outputs.url }}"
