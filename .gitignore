@@ -3,6 +3,7 @@
 osix-training-auth-7e06b1ed392e.json
 gmailOAuth.json
 CICD.json
+package-lock.json
 # dependencies
 /node_modules
 /.pnp
