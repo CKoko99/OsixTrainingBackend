@@ -29,8 +29,10 @@ jobs:
 
       - name: Deploy to Google Cloud Shell
         run: |
-          # Replace with your deployment commands
-          gcloud app deploy
-      
-      - name: Test
-        run: curl "${{ steps.deploy.outputs.url }}"
+            # Replace with your deployment commands
+            DEPLOY_OUTPUT=$(gcloud app deploy --quiet)
+            echo "::set-output name=deployed_url::$(echo $DEPLOY_OUTPUT | grep -o 'https://.*')"
+
+      - name: Get Deployed URL
+        run: |
+          echo "Deployed URL: \${{ steps.deployment.outputs.deployed_url }}"
