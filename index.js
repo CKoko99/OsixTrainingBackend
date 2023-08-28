@@ -65,7 +65,7 @@ const googleSheetsServiceAuth = new JWT({
 const doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID, googleSheetsServiceAuth);
 
 //Google Gmail Setup
-const OAUTHCREDENTIALS = JSON.parse(fs.readFileSync('gmailOAuth.json'));
+const OAUTHCREDENTIALS = JSON.parse(process.env.GMAIL_OAUTH)
 const gmailOAuth = new google.auth.OAuth2(OAUTHCREDENTIALS.client_id, OAUTHCREDENTIALS.client_secret);
 gmailOAuth.setCredentials({ refresh_token: OAUTHCREDENTIALS.refresh_token });
 
