@@ -9,3 +9,14 @@ steps:
           ]
     - name: "gcr.io/cloud-builders/docker"
       args: ["push", "gcr.io/osix-training-auth/osixtrainingbackend:$SHORT_SHA"]
+    - name: "gcr.io/cloud-builders/gcloud"
+      args:
+          [
+              "beta",
+              "run",
+              "deploy",
+              "osixtrainingbackend",
+              "--region=us-east1",
+              "--platform=managed",
+              "--image=gcr.io/osix-training-auth/osixtrainingbackend:$SHORT_SHA",
+          ]
