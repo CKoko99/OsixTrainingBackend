@@ -11,4 +11,4 @@ COPY . .
 
 
 #ONLY 1 CMD PER DOCKERFILE
-CMD ["node", "app.js"]
+CMD ["node", "index.js"]
