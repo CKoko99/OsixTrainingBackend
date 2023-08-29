@@ -16,6 +16,7 @@ import fs from 'fs';
 import busboy from 'busboy';
 import 'dotenv/config';
 import pageRoute from './routes/page.js'
+import userRoute from './routes/user.js'
 import sgMail from '@sendgrid/mail'
 
 
@@ -302,6 +303,7 @@ app.post('/upload', async (req, res) => {
   }
 });
 app.use('/page', pageRoute)
+app.use('/user', userRoute)
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   //console log the url to the server
