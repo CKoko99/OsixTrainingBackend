@@ -47,5 +47,28 @@ router.get('/:store/email', async (req, res) => {
     }
 });
 
+router.get('/regions', async (req, res) => {
+    try {
+        const regionsCollection = collection(db, 'Regions');
+        const regionSnapshot = await getDocs(regionsCollection);
+        const regionList = regionSnapshot.docs.map(doc => doc.data());
+        res.json({ regionList });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: error.message });
+    }
+});
+router.post('/regions', async (req, res) => {
+    try {
+        const REGIONS = req.body.REGIONS
+        const regionsCollection = collection(db, 'Regions');
+        for (let i = 0; i < REGIONS.length; i++) {
+            await addDoc(regionsCollection, REGIONS[i]);
+            console.log('Region document created successfully');
+        }
+    } catch (error) {
+        console.error('Error creating region document: ', error);
+    }
+});
 
 export default router;

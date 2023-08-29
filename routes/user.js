@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db } from "../firebase.js";
-import { doc, setDoc, getDoc, arrayUnion, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, setDoc, getDoc, arrayUnion, collection, query, where, getDocs, updateDoc, increment } from "firebase/firestore";
+
 
 const router = Router(); // Create an instance of the Router
 router.get("/:userId", async (req, res) => {
@@ -15,8 +16,9 @@ router.get("/:userId", async (req, res) => {
             res.json({ ...userData });
         } else {
             //console.log("User does not exist in firestore")
+            //Come back to this when Auth is set up
             await setDoc(userRef, {
-                displayName: user.displayName,
+                displayName: user.displayName
                 // Add any other user data fields here if needed
             });
             res.json({ userData: { displayName: user.displayName } });
@@ -69,5 +71,23 @@ router.post('/:userId/store/', async (req, res) => {
     }
 });
 
+router.post('/:userId/log', async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const userRef = doc(db, "Users", userId);
+
+        await updateDoc(userRef, {
+            minutesLoggedIn: increment(1),
+        }).then(() => {
+            //    console.log(`Successfully logged ${user.displayName} in for 1 minute.`);
+            res.json({ message: `Successfully logged ${userId} in for 1 minute.` });
+        }).catch((error) => {
+            console.error("Error logging user in: ", error);
+        });
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ error: error.message });
+    }
+});
 
 export default router;
