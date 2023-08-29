@@ -1,20 +1,23 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const md5 = require("md5");
-const path = require('path');
-const mime = require('mime-types');
-const streamifier = require('streamifier');
-const nodemailer = require('nodemailer');
-const cors = require('cors');
-const Multer = require('multer');
-const { Readable } = require('stream');
+import express from 'express';
+import bodyParser from 'body-parser';
+import md5 from "md5";
+import path from 'path';
+import mime from 'mime-types';
+import streamifier from 'streamifier';
+import nodemailer from 'nodemailer';
+import cors from 'cors';
+import Multer from 'multer';
+import { Readable } from 'stream';
 
-const { GoogleSpreadsheet } = require('google-spreadsheet');
-const { google } = require('googleapis');
-const { JWT } = require('google-auth-library')
-const fs = require('fs');
-const busboy = require('busboy');
-require('dotenv').config();
+import { GoogleSpreadsheet } from 'google-spreadsheet';
+import { google } from 'googleapis';
+import { JWT } from 'google-auth-library'
+import fs from 'fs';
+import busboy from 'busboy';
+import 'dotenv/config';
+import pageRoute from './routes/page.js'
+import sgMail from '@sendgrid/mail'
+
 
 //Cros Setup to limit domainds
 const allowedOrigins = ["http://usinsurancetraining.com", "https://usinsurancetraining.com", "http://localhost:3000"];
@@ -32,7 +35,6 @@ const corsOptions = {
 };
 
 //SendGrid Email Service Setup
-const sgMail = require('@sendgrid/mail')
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 //Google Cloud Platform Setup
