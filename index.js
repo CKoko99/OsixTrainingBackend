@@ -301,7 +301,7 @@ app.post('/upload', async (req, res) => {
     res.json('ok');
   }
 });
-
+app.use('/page', pageRoute)
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   //console log the url to the server
