@@ -54,5 +54,20 @@ router.post('/:userId/results', async (req, res) => {
     }
 });
 
+router.post('/:userId/store/', async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const storeId = req.body.storeId;
+        const userRef = doc(db, "Users", userId);
+        //console.log("adding store to user")
+        await setDoc(userRef, { store: storeId }, { merge: true });
+        console.log(`${storeId} added to ${userId} store`);
+        res.json({ message: `${storeId} added to ${userId} store` });
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ error: error.message });
+    }
+});
+
 
 export default router;
