@@ -3,7 +3,6 @@ import { Router } from "express";
 import { db } from "../firebase.js";
 import { getDocs, collection, query, where, addDoc, doc, updateDoc } from "firebase/firestore";
 
-
 const router = Router(); // Create an instance of the Router
 
 router.get("/:link", async (req, res) => {
