@@ -40,5 +40,19 @@ router.post("/form", async (req, res) => {
 }
 )
 
+router.post('/:userId/results', async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const { quizTitle, score, timeSpent } = req.body;
+        const userRef = doc(db, "Users", userId);
+        await setDoc(userRef, { results: arrayUnion({ quizTitle, score, timeSpent }) }, { merge: true });
+        console.log(`${quizTitle} added to ${userId} results array`);
+        res.json({ message: `${quizTitle} added to ${userId} results array` });
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ error: error.message });
+    }
+});
+
 
 export default router;
