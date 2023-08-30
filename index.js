@@ -66,7 +66,6 @@ const googleSheetsServiceAuth = new JWT({
     'https://www.googleapis.com/auth/spreadsheets',
   ],
 });
-const doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID, googleSheetsServiceAuth);
 
 //Google Gmail Setup
 const OAUTHCREDENTIALS = JSON.parse(process.env.GMAIL_OAUTH)
@@ -178,6 +177,7 @@ app.post("/send-issue", async (request, res) => {
 const addRowToSheet = async (sheetName, headerData, row) => {
   try {
     // Load document info (e.g., title, worksheets)
+    const doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID, googleSheetsServiceAuth);
     await doc.loadInfo();
     console.log(`Loaded doc: ` + doc.title);
     console.log(`sheetName: ` + sheetName);
