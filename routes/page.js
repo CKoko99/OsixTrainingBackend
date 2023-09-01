@@ -4,20 +4,43 @@ import { db } from "../firebase.js";
 import { getDocs, collection, query, where, addDoc, doc, updateDoc } from "firebase/firestore";
 
 const router = Router(); // Create an instance of the Router
-
+//Create an object to store the data in memory
+const pageData = {};
+//Create a timeout function to clear old data from memory every hour
+setInterval(() => {
+    for (const key in pageData) {
+        if (Date.now() - pageData[key].time > 300000) {
+            delete pageData[key];
+        }
+    }
+}, 3600000);
 router.get("/:link", async (req, res) => {
-    console.log(req.params.link)
     const link = req.params.link.split('|').filter(item => item !== '').map(item => item.toLowerCase());
-    const pagesRef = collection(db, 'Pages'); // Replace 'db' with your Firestore instance
-    const q = query(pagesRef, where('link', '==', link));
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-        console.log('No matching documents.');
-        res.status(404).json({ error: 'Page not found' });
+    //check if the data is already in memory and it isn't older than 5 minutes
+    console.log(link)
+    if (pageData[link] && Date.now() - pageData[link].time < 300000) {
+        //if it is, send it back
+        console.log('Page data found in memory');
+        res.json(pageData[link]);
     } else {
-        const section = querySnapshot.docs[0].data().section;
-        res.json({ section });
+        if (pageData[link]) {
+            delete pageData[link]
+            console.log('Page data found in memory but too old');
+        } else {
+            console.log('Page data not found in memory');
+        }
+        const pagesRef = collection(db, 'Pages'); // Replace 'db' with your Firestore instance
+        const q = query(pagesRef, where('link', '==', link));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            console.log('No matching documents.');
+            res.status(404).json({ error: 'Page not found' });
+        } else {
+            const section = querySnapshot.docs[0].data().section;
+            pageData[link] = { section: section, time: Date.now() }
+            res.json({ section });
+        }
     }
 }
 )
