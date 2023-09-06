@@ -19,10 +19,11 @@ import pageRoute from './routes/page.js'
 import userRoute from './routes/user.js'
 import storeRoute from './routes/stores.js'
 import sgMail from '@sendgrid/mail'
+import { googleOauthHandler } from './controllers/session.controller.js';
 
 
 //Cros Setup to limit domainds
-const allowedOrigins = ["http://usinsurancetraining.com", "https://usinsurancetraining.com", "http://localhost:3000"];
+const allowedOrigins = ['http://192.168.20.122:3000', "http://usinsurancetraining.com", "https://usinsurancetraining.com", "http://localhost:3000"];
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -31,7 +32,8 @@ const corsOptions = {
       callback(null, true);
     } else {
       // Deny the request
-      callback(new Error("Not allowed by CORS"));
+      callback(null, true);
+      //callback(new Error(`${origin} Not allowed by CORS`));
     }
   },
 };
@@ -252,23 +254,24 @@ const setFilePublicAccess = async (fileId) => {
 const CHUNKS = {};
 
 app.post('/upload', async (req, res) => {
-  const { name, currentChunkIndex, totalChunks } = req.query;
-  const lastChunk = parseInt(currentChunkIndex) === parseInt(totalChunks) - 1;
-  const ext = name.split('.').pop();
-  const data = req.body.toString().split(',')[1];
-  const buffer = Buffer.from(data, 'base64');
+  try {
+    console.log("reached upload")
+    const { name, currentChunkIndex, totalChunks } = req.query;
+    const lastChunk = parseInt(currentChunkIndex) === parseInt(totalChunks) - 1;
+    const ext = name.split('.').pop();
+    const data = req.body.toString().split(',')[1];
+    const buffer = Buffer.from(data, 'base64');
 
-  // Store the chunk in an array based on the chunk index
-  if (!CHUNKS[name]) {
-    CHUNKS[name] = [];
-  }
-  CHUNKS[name][currentChunkIndex] = buffer;
+    // Store the chunk in an array based on the chunk index
+    if (!CHUNKS[name]) {
+      CHUNKS[name] = [];
+    }
+    CHUNKS[name][currentChunkIndex] = buffer;
 
-  if (lastChunk) {
-    // Concatenate all the chunks into a single buffer
-    const concatenatedBuffer = Buffer.concat(CHUNKS[name]);
+    if (lastChunk) {
+      // Concatenate all the chunks into a single buffer
+      const concatenatedBuffer = Buffer.concat(CHUNKS[name]);
 
-    try {
       // Create the file on Google Drive using the concatenated buffer
       const fileResource = await drive.files.create({
         resource: {
@@ -288,21 +291,24 @@ app.post('/upload', async (req, res) => {
 
       // Clean up the chunks array after successful upload
       delete CHUNKS[name];
-
+      console.log(fileResource.data.webViewLink)
       res.status(200).json({
         message: 'File uploaded successfully',
         fileLink: fileResource.data.webViewLink,
         fileId: fileId,
       });
-    } catch (error) {
-      // Handle error during Google Drive upload
-      delete CHUNKS[name]; // Clean up the chunks array in case of error
-      res.status(500).json({ error: 'Error uploading file to Google Drive' });
+    } else {
+      res.json('ok');
     }
-  } else {
-    res.json('ok');
+  } catch (error) {
+    // Handle error during Google Drive upload
+    console.error('Error uploading file to Google Drive:', error.message);
+    delete CHUNKS[name]; // Clean up the chunks array in case of error
+    res.status(500).json({ error: 'Error uploading file to Google Drive' });
   }
 });
+//app.get('/api/sessions/oauth/google', googleOauthHandler, )
+
 app.use('/page', pageRoute)
 app.use('/user', userRoute)
 app.use('/store', storeRoute)

@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { db } from "../firebase.js";
 import { doc, setDoc, getDoc, arrayUnion, collection, query, where, getDocs, updateDoc, increment } from "firebase/firestore";
+import { getGoogleUser } from "../service/user.service.js";
 
 
 const router = Router(); // Create an instance of the Router
 router.get("/:userId", async (req, res) => {
     const userId = req.params.userId;
+    console.log(userId)
     try {
         const userRef = doc(db, "Users", userId);
         // Now you can fetch the data for the specific user document
@@ -18,10 +20,12 @@ router.get("/:userId", async (req, res) => {
             //console.log("User does not exist in firestore")
             //Come back to this when Auth is set up
             await setDoc(userRef, {
-                displayName: user.displayName
+                userId: userId
                 // Add any other user data fields here if needed
             });
-            res.json({ userData: { displayName: user.displayName } });
+            res.json({
+                userData: { userId: userId }
+            });
         }
     } catch (error) {
         console.log(error)
