@@ -1,7 +1,7 @@
 import qs from 'qs';
 import { db } from "../firebase.js";
 import { doc, setDoc, getDoc, arrayUnion, collection, query, where, getDocs, updateDoc, increment } from "firebase/firestore";
-
+import jwt from 'jsonwebtoken'
 export async function getGoogleOauthTokens(code) {
     const url = 'https://oauth2.googleapis.com/token'
     const values = {
@@ -75,4 +75,30 @@ export async function getFirebaseUser(userId, displayName) {
     }
 }
 
+export async function tokenValidator(req, res, next) {
+    const userId = req.headers.userid;
+    const headerToken = req.headers.token; // Assuming the token is in the "Authorization" header
+    if (!userId || !headerToken) return res.status(401).json({ error: 'Unauthorized' });
+    //console.log(req.headers)
+    try {
+        // Verify and decode the JWT token
+        const decoded = jwt.verify(headerToken, process.env.JWT_SECRET);
+
+        if (decoded.userId !== userId) {
+            console.log("Token is invalid: User ID does not match");
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        // Token is valid, continue to the next middleware or route handler
+        next();
+    } catch (error) {
+        console.error("Token verification failed:", error.message);
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+
+
+    // Token is valid, continue to the next middleware or route handler
+    //next();
+}
 //given the firebase Authentication User UID, get the user details from google

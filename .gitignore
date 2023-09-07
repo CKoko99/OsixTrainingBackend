@@ -5,6 +5,7 @@ gmailOAuth.json
 CICD.json
 appspot.json
 package-lock.json
+firebaseAdminSDK.json
 # dependencies
 /node_modules
 /.pnp

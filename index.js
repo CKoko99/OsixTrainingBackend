@@ -18,6 +18,7 @@ import 'dotenv/config';
 import pageRoute from './routes/page.js'
 import userRoute from './routes/user.js'
 import storeRoute from './routes/stores.js'
+import authRoute from './routes/auth.js'
 import sgMail from '@sendgrid/mail'
 import { googleOauthHandler } from './controllers/session.controller.js';
 
@@ -308,7 +309,7 @@ app.post('/upload', async (req, res) => {
   }
 });
 //app.get('/api/sessions/oauth/google', googleOauthHandler, )
-
+app.use('/auth', authRoute)
 app.use('/page', pageRoute)
 app.use('/user', userRoute)
 app.use('/store', storeRoute)

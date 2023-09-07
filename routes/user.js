@@ -1,30 +1,45 @@
 import { Router } from "express";
 import { db } from "../firebase.js";
 import { doc, setDoc, getDoc, arrayUnion, collection, query, where, getDocs, updateDoc, increment } from "firebase/firestore";
-import { getGoogleUser } from "../service/user.service.js";
-
+import { tokenValidator } from "../service/user.service.js";
 
 const router = Router(); // Create an instance of the Router
+
+router.get("/signin", async (req, res) => {
+    //user will send their userId in the header
+    const userId = req.headers.userid;
+    //Search for the user in firestore
+    const userRef = doc(db, "Users", userId);
+    const docSnapshot = await getDoc(userRef);
+    if (docSnapshot.exists()) {
+        //if they exist, create a new JWT token and send it back to the user
+    } else {
+        //if they don't exist, check google auth to see if they are a valid user
+
+        //if they are, create a new user in firestore and send a new JWT token back to the user
+        //if they aren't, send an error message back to the user
+    }
+
+})
 router.get("/:userId", async (req, res) => {
     const userId = req.params.userId;
-    console.log(userId)
+    //console.log(userId)
     try {
         const userRef = doc(db, "Users", userId);
         // Now you can fetch the data for the specific user document
         const docSnapshot = await getDoc(userRef);
         if (docSnapshot.exists()) {
             const userData = docSnapshot.data();;
-            //console.log(userData)
             res.json({ ...userData });
         } else {
             //console.log("User does not exist in firestore")
             //Come back to this when Auth is set up
-            await setDoc(userRef, {
-                userId: userId
-                // Add any other user data fields here if needed
-            });
+            const userdata = {
+                userId: userId,
+            }
+            await setDoc(userRef, userdata, { merge: true });
             res.json({
-                userData: { userId: userId }
+                ...userdata
             });
         }
     } catch (error) {

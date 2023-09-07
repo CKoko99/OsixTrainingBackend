@@ -2,6 +2,7 @@
 import { Router } from "express";
 import { db } from "../firebase.js";
 import { getDocs, collection, query, where, addDoc, doc, updateDoc } from "firebase/firestore";
+import { tokenValidator } from "../service/user.service.js";
 
 const router = Router(); // Create an instance of the Router
 //Create an object to store the data in memory
@@ -17,7 +18,7 @@ setInterval(() => {
     }
 }, 3600000);
 
-router.get("/:link", async (req, res) => {
+router.get("/:link", tokenValidator, async (req, res) => {
     try {
         const link = req.params.link.split('|').filter(item => item !== '').map(item => item.toLowerCase());
         //check if the data is already in memory and it isn't older than 5 minutes
@@ -35,13 +36,12 @@ router.get("/:link", async (req, res) => {
             const pagesRef = collection(db, 'Pages'); // Replace 'db' with your Firestore instance
             const q = query(pagesRef, where('link', '==', link));
             const querySnapshot = await getDocs(q);
-
             if (querySnapshot.empty) {
                 res.status(404).json({ error: 'Page not found' });
             } else {
                 const section = querySnapshot.docs[0].data().section;
                 pageData[link] = { section: section, time: Date.now() }
-                res.json({ section });
+                res.status(200).json({ section });
             }
         }
     } catch (error) {
