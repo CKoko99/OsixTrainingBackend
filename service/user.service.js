@@ -83,7 +83,6 @@ export async function tokenValidator(req, res, next) {
     try {
         // Verify and decode the JWT token
         const decoded = jwt.verify(headerToken, process.env.JWT_SECRET);
-        console.log(decoded)
         if (decoded.userId !== userId) {
             console.log("Token is invalid: User ID does not match");
             return res.status(401).json({ error: 'Unauthorized' });

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { dbAdmin as db } from "../firebaseAdmin.js";
+import { dbAdmin as db, authAdmin } from "../firebaseAdmin.js";
 import { FieldValue } from 'firebase-admin/firestore'
 
 const router = Router(); // Create an instance of the Router
@@ -7,7 +7,7 @@ const router = Router(); // Create an instance of the Router
 router.get("/:userId", async (req, res) => {
     const userId = req.params.userId;
     try {
-        const userRef = db.collection("Users").doc(userId); // Reference the 'Users' collection using db
+        let userRef = db.collection("Users").doc(userId); // Reference the 'Users' collection using db
 
         // Now you can fetch the data for the specific user document
         const docSnapshot = await userRef.get();
@@ -16,12 +16,17 @@ router.get("/:userId", async (req, res) => {
             const userData = docSnapshot.data();
             res.json({ ...userData });
         } else {
-            // User document doesn't exist in Firestore, create a new one
-            const userData = {
-                userId: userId,
-            };
-
-            await userRef.set(userData, { merge: true });
+            // User document doesn't exist in Firestore, create a new one\
+            //get the google auth display name
+            let userData = {};
+            userData.userId = userId;
+            userRef = db.collection("Users")
+            await authAdmin.getUser(userId).then(async (userRecord) => {
+                userData.displayName = userRecord.displayName;
+                await userRef.doc(userData.displayName).set(userData, { merge: true });
+            }).catch((error) => {
+                console.log("Error Creating user in firestore", error);
+            });
 
             res.json({ ...userData });
         }
@@ -33,7 +38,6 @@ router.get("/:userId", async (req, res) => {
 
 router.post("/form", async (req, res) => {
     try {
-        console.log(req.body);
         const userId = req.body.userId;
         const formId = req.body.formId;
         const userRef = db.collection("Users").doc(userId); // Reference the 'Users' collection using db
