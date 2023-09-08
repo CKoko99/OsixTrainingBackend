@@ -144,7 +144,7 @@ app.post("/send-email", async (request, res) => {
 
 app.post("/send-issue", async (request, res) => {
   const { subject, text, html } = request.body;
-  const emailRecipients = ['courtney@getaiu.com',]
+  const emailRecipients = ['courtney@getaiu.com', "hrdept@getaiu.com", "mickey.l@getaiu.com"]
   try {
     const accessToken = await gmailOAuth.getAccessToken();
     const transport = nodemailer.createTransport({
