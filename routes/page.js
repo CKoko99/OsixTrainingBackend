@@ -1,7 +1,7 @@
 
 import { Router } from "express";
 import { db } from "../firebase.js";
-import { getDocs, collection, query, where, addDoc, doc, updateDoc } from "firebase/firestore";
+import { getDocs, collection, query, where, addDoc, setDoc, doc, updateDoc } from "firebase/firestore";
 import { tokenValidator } from "../service/user.service.js";
 
 const router = Router(); // Create an instance of the Router
@@ -60,10 +60,14 @@ router.post("/:link/section", async (req, res) => {
         const querySnapshot = await getDocs(q);
         if (querySnapshot.empty) {
             console.log('No matching documents.');
-            await addDoc(collection(db, 'Pages'), {
+            const linkString = link.join('_');
+            console.log(linkString)
+            await setDoc(doc(db, "Pages", linkString), {
                 link,
                 section: [itemProps]
             });
+
+
             res.json({ message: 'Page created' });
         } else {
             console.log('Matching document.');
