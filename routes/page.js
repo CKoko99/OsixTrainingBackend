@@ -1,7 +1,6 @@
 
 import { Router } from "express";
-import { db } from "../firebase.js";
-import { getDocs, collection, query, where, addDoc, setDoc, doc, updateDoc } from "firebase/firestore";
+import { dbAdmin as db } from "../firebaseAdmin.js";
 import { tokenValidator } from "../service/user.service.js";
 
 const router = Router(); // Create an instance of the Router
@@ -33,9 +32,10 @@ router.get("/:link", tokenValidator, async (req, res) => {
             } else {
                 //console.log(`Page data not found in memory for ${link}`);
             }
-            const pagesRef = collection(db, 'Pages'); // Replace 'db' with your Firestore instance
-            const q = query(pagesRef, where('link', '==', link));
-            const querySnapshot = await getDocs(q);
+            const pagesRef = db.collection('Pages'); // Use 'db' from your Firebase Admin SDK initialization
+            const q = pagesRef.where('link', '==', link);
+            const querySnapshot = await q.get();
+
             if (querySnapshot.empty) {
                 res.status(404).json({ error: 'Page not found' });
             } else {
@@ -55,18 +55,18 @@ router.post("/:link/section", async (req, res) => {
     try {
         const link = req.params.link.split('|').filter(item => item !== '').map(item => item.toLowerCase());
         const itemProps = req.body;
-        const pagesRef = collection(db, 'Pages');
-        const q = query(pagesRef, where('link', '==', link));
-        const querySnapshot = await getDocs(q);
+        const pagesRef = db.collection('Pages'); // Use 'db' from your Firebase Admin SDK initialization
+        const q = pagesRef.where('link', '==', link);
+        const querySnapshot = await q.get();
+
         if (querySnapshot.empty) {
             console.log('No matching documents.');
             const linkString = link.join('_');
-            console.log(linkString)
-            await setDoc(doc(db, "Pages", linkString), {
+            console.log(linkString);
+            await pagesRef.doc(linkString).set({
                 link,
                 section: [itemProps]
             });
-
 
             res.json({ message: 'Page created' });
         } else {
@@ -80,9 +80,10 @@ router.post("/:link/section", async (req, res) => {
                 : [itemProps];
 
             const docRef = doc.ref; // Get the reference to the existing document
-            await updateDoc(docRef, {
+            await docRef.update({
                 section: updatedSection,
             });
+
             res.json({ message: 'Page updated' });
         }
     } catch (error) {

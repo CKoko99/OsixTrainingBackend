@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db } from "../firebase.js";
+import { dbAdmin as db } from "../firebaseAdmin.js";
 import { doc, setDoc, getDoc, arrayUnion, collection, query, where, getDocs } from "firebase/firestore";
 
 const router = Router(); // Create an instance of the Router
@@ -7,9 +7,15 @@ const router = Router(); // Create an instance of the Router
 router.get('/:store/email', async (req, res) => {
     try {
         const store = req.params.store;
-        const regionsCollection = collection(db, 'Regions');
-        const q = query(regionsCollection, where('name', '==', store));
-        const querySnapshot = await getDocs(q);
+
+        // Reference the 'Regions' collection using Firebase Admin SDK
+        const regionsCollection = db.collection('Regions');
+
+        // Create a query to find documents where 'name' matches 'store'
+        const q = regionsCollection.where('name', '==', store);
+
+        // Execute the query
+        const querySnapshot = await q.get();
         const emailList = [];
 
         if (!querySnapshot.empty) {
@@ -45,12 +51,13 @@ router.get('/:store/email', async (req, res) => {
         console.log(e);
         res.status(500).json({ error: e.message });
     }
+
 });
 
 router.get('/regions', async (req, res) => {
     try {
-        const regionsCollection = collection(db, 'Regions');
-        const regionSnapshot = await getDocs(regionsCollection);
+        const regionsCollection = db.collection('Regions'); // Reference the 'Regions' collection
+        const regionSnapshot = await regionsCollection.get(); // Execute the query
         const regionList = regionSnapshot.docs.map(doc => doc.data());
         res.json({ regionList });
     } catch (error) {
@@ -58,16 +65,22 @@ router.get('/regions', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
 router.post('/regions', async (req, res) => {
     try {
-        const REGIONS = req.body.REGIONS
-        const regionsCollection = collection(db, 'Regions');
+        const REGIONS = req.body.REGIONS;
+        const regionsCollection = db.collection('Regions'); // Reference the 'Regions' collection
+
+        // Loop through the provided regions and add them to Firestore
         for (let i = 0; i < REGIONS.length; i++) {
-            await addDoc(regionsCollection, REGIONS[i]);
+            await regionsCollection.add(REGIONS[i]);
             console.log('Region document created successfully');
         }
+
+        res.json({ message: 'Regions created successfully' });
     } catch (error) {
         console.error('Error creating region document: ', error);
+        res.status(500).json({ error: error.message });
     }
 });
 
