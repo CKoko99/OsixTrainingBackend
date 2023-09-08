@@ -20,10 +20,9 @@ router.get("/:userId", async (req, res) => {
             //get the google auth display name
             let userData = {};
             userData.userId = userId;
-            userRef = db.collection("Users")
             await authAdmin.getUser(userId).then(async (userRecord) => {
                 userData.displayName = userRecord.displayName;
-                await userRef.doc(userData.displayName).set(userData, { merge: true });
+                await userRef.set(userData, { merge: true });
             }).catch((error) => {
                 console.log("Error Creating user in firestore", error);
             });
