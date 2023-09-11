@@ -188,6 +188,7 @@ const addRowToSheet = async (sheetName, headerData, row) => {
     if (!sheet) {
       console.log("Sheet not found");
       sheet = await doc.addSheet({ title: sheetName });
+      await sheet.resize({ rowCount: 1000, columnCount: headerData.length + 10 })
       await sheet.setHeaderRow(headerData);
     } else {
       // Check if sheet has header values
@@ -197,6 +198,7 @@ const addRowToSheet = async (sheetName, headerData, row) => {
         await sheet.loadHeaderRow();
       } catch (error) {
         console.log("Sheet has no header row.");
+        await sheet.resize({ rowCount: 1000, columnCount: headerData.length + 10 })
         await sheet.setHeaderRow(headerData);
         await sheet.addRow(row);
       }
