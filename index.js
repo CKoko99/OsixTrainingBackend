@@ -229,11 +229,13 @@ app.post("/add-row", async (request, response) => {
   console.log("sheetHeader")
   console.log(sheetHeader)
   //Sheet Header Data
-
-  await addRowToSheet(request.body[request.body.length - 1][1], sheetHeader, row);
-
-
-  return response.json({ message: "Row added successfully" }).status(200);
+  try {
+    await addRowToSheet(request.body[request.body.length - 1][1], sheetHeader, row);
+    return response.json({ message: "Row added successfully" }).status(200);
+  } catch (error) {
+    console.log(error)
+    return response.json({ message: "Error adding row" }).status(500);
+  }
 });
 
 //Chunking Files to Google Drive
