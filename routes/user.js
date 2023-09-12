@@ -7,6 +7,11 @@ const router = Router(); // Create an instance of the Router
 router.get("/:userId", async (req, res) => {
     try {
         const userId = req.params.userId;
+        if (!userId) {
+            console.log("No user ID provided");
+            res.status(400).json({ error: "No user ID provided" });
+            return;
+        }
         let userRef = db.collection("Users").doc(userId); // Reference the 'Users' collection using db
 
         // Now you can fetch the data for the specific user document
