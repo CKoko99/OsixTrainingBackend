@@ -5,8 +5,8 @@ import { FieldValue } from 'firebase-admin/firestore'
 const router = Router(); // Create an instance of the Router
 
 router.get("/:userId", async (req, res) => {
-    const userId = req.params.userId;
     try {
+        const userId = req.params.userId;
         let userRef = db.collection("Users").doc(userId); // Reference the 'Users' collection using db
 
         // Now you can fetch the data for the specific user document
@@ -14,6 +14,17 @@ router.get("/:userId", async (req, res) => {
 
         if (docSnapshot.exists) {
             const userData = docSnapshot.data();
+
+            //if there is no display name, get it from google auth
+            if (!userData.displayName) {
+                await authAdmin.getUser(userId).then(async (userRecord) => {
+                    userData.displayName = userRecord.displayName;
+                    await userRef.set(userData, { merge: true });
+                }).catch((error) => {
+                    console.log("Error Setting user display name in firestore", error);
+                });
+            }
+
             res.json({ ...userData });
         } else {
             // User document doesn't exist in Firestore, create a new one\
