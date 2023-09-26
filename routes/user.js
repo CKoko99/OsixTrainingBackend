@@ -64,8 +64,8 @@ router.post("/form", async (req, res) => {
             },
             { merge: true }
         );
-
-        res.json({ message: "Form added to completedForms array" });
+        console.log(`${formId} added to ${userId} completedForms array`);
+        res.json({ message: `${formId} added to ${userId} completedForms array"` });
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: error.message });

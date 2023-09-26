@@ -225,9 +225,7 @@ app.post("/add-row", async (request, response) => {
     sheetHeader.push(header)
 
   }
-  console.log(row)
-  console.log("sheetHeader")
-  console.log(sheetHeader)
+
   //Sheet Header Data
   try {
     await addRowToSheet(request.body[request.body.length - 1][1], sheetHeader, row);
