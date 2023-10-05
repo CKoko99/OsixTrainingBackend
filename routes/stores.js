@@ -4,15 +4,25 @@ import { doc, setDoc, getDoc, arrayUnion, collection, query, where, getDocs } fr
 
 const router = Router(); // Create an instance of the Router
 
-router.get('/:store/email', async (req, res) => {
+router.get('/:userID/email', async (req, res) => {
     try {
-        const store = req.params.store;
+        const userId = req.params.userID;
+        //from the userId get the store
+        let userRef = db.collection("Users").doc(userId); // Reference the 'Users' collection using db
+
+        // Now you can fetch the data for the specific user document
+        let storeName = [];
+        const docSnapshot = await userRef.get();
+        if (docSnapshot.exists) {
+            const userData = docSnapshot.data();
+            storeName = userData.store;
+        }
 
         // Reference the 'Regions' collection using Firebase Admin SDK
         const regionsCollection = db.collection('Regions');
 
         // Create a query to find documents where 'name' matches 'store'
-        const q = regionsCollection.where('name', '==', store);
+        const q = regionsCollection.where('name', '==', storeName[0]);
 
         // Execute the query
         const querySnapshot = await q.get();
@@ -20,9 +30,9 @@ router.get('/:store/email', async (req, res) => {
 
         if (!querySnapshot.empty) {
             const regionDoc = querySnapshot.docs[0];
-            const district = regionDoc.data().Districts.find(d => d.name === userDetails.store[1]);
+            const district = regionDoc.data().Districts.find(d => d.name === storeName[1]);
             if (district) {
-                const store = district.Stores.find(s => s.name === userDetails.store[2]);
+                const store = district.Stores.find(s => s.name === storeName[2]);
                 if (store) {
                     if (regionDoc.data().emails) {
                         emailList.push(...regionDoc.data().emails);
