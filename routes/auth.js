@@ -28,7 +28,7 @@ router.get("/signin", async (req, res) => {
             res.status(401).json({ error: "You must use a getaiu.com email address to log in" })
         } else {
             //user is valid, create a new JWT token and send it back to the user
-            const token = jwt.sign({ userId: userId }, process.env.JWT_SECRET, { expiresIn: '12h' });
+            const token = jwt.sign({ userId: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
             res.status(200).json({ token: token });
         }
     } catch (error) {
