@@ -22,7 +22,7 @@ router.get("/signin", async (req, res) => {
             res.status(401).json({ error: "User not found" })
             return
         }
-
+        console.log(userRecord)
         //check if user email is from getaiu.com
         if (userRecord.email.split('@')[1] !== "getaiu.com") {
             res.status(401).json({ error: "You must use a getaiu.com email address to log in" })
@@ -37,4 +37,18 @@ router.get("/signin", async (req, res) => {
     }
 
 });
+router.get("/verify", async (req, res) => {
+    //verify the token
+    const token = req.headers.authorization.split(' ')[1];
+    if (!token) {
+        res.status(401).json({ error: "No token provided" })
+    }
+    try {
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        res.status(200).json({ userId: decodedToken.userId })
+    } catch (error) {
+        res.status(401).json({ error: "Invalid token" })
+    }
+});
+
 export default router;
