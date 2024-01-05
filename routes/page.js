@@ -3,6 +3,9 @@ import { Router } from "express";
 import { dbAdmin as db } from "../firebaseAdmin.js";
 import { tokenValidator } from "../service/user.service.js";
 
+const PageCollection = process.env.NODE_ENV === 'prod' ? 'Pages' : 'Pages-Dev';
+console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`PageCollection: ${PageCollection}`);
 const router = Router(); // Create an instance of the Router
 //Create an object to store the data in memory
 const pageData = {};
