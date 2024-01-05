@@ -36,6 +36,7 @@ const corsOptions = {
       callback(null, true);
     } else {
       // Deny the request
+      console.log("Blocked origin" + origin)
       callback(null, true);
       //callback(new Error(`${origin} Not allowed by CORS`));
     }
