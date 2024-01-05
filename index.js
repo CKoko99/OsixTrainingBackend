@@ -25,7 +25,8 @@ import { googleOauthHandler } from './controllers/session.controller.js';
 
 //Cros Setup to limit domainds
 const allowedOrigins = ['http://192.168.20.122:3000', "http://usinsurancetraining.com", "https://usinsurancetraining.com", "http://localhost:3000",
-  "https://osix-training-gmhy56cvgq-ue.a.run.app", "http://osix-training-gmhy56cvgq-ue.a.run.app/"
+  "https://osix-training-gmhy56cvgq-ue.a.run.app", "http://osix-training-gmhy56cvgq-ue.a.run.app",
+  "https://osix-training-dev-gmhy56cvgq-ue.a.run.app", "http://osix-training-dev-gmhy56cvgq-ue.a.run.app",
 ];
 
 const corsOptions = {
