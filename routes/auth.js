@@ -29,7 +29,10 @@ router.get("/signin", async (req, res) => {
         } else {
             //user is valid, create a new JWT token and send it back to the user
             const token = jwt.sign({ userId: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
-            res.status(200).json({ token: token });
+            res.status(200).json({
+                token: token,
+                user: userRecord
+            });
         }
     } catch (error) {
         console.log(error)
