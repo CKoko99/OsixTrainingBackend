@@ -117,6 +117,24 @@ router.post('/:userId/store/', async (req, res) => {
     }
 });
 
+router.put('/:userId/legacy', async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const userRef = db.collection('Users').doc(userId); // Reference the 'Users' collection
+        //get value from body
+        const legacy = req.body.value;
+        // Use .set() to update the document with merge: true to only update specific fields
+        await userRef.set({ legacy }, { merge: true });
+
+        console.log(`legacy status updated for ${userId}`);
+        res.json({ message: `legacy status updated for ${userId}` });
+    } catch (error) {
+        console.log("Error updating legacy status for user");
+        console.log(error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 router.post('/:userId/log', async (req, res) => {
     try {
         const userId = req.params.userId;
