@@ -42,7 +42,8 @@ router.get('/:userID/email', async (req, res) => {
                         emailList.push(...district.emails);
                     }
                     if (store.emails) {
-                        emailList.push(...store.emails);
+                        //removing store emails
+                        //        emailList.push(...store.emails);
                     }
                     res.json({ emailList });
                 } else {
