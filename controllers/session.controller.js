@@ -11,8 +11,10 @@ export async function googleOauthHandler(req, res) {
         //console.log(id_token, access_token)
 
         const googleUser = await getGoogleUser(id_token, access_token);
-        if (googleUser.hd !== "getaiu.com") {
-            res.status(401).json({ error: "You must use a getaiu.com email address to log in" })
+        if (googleUser.hd !== "getaiu.com"
+            || googleUser.hd !== "insurehut.com"
+        ) {
+            res.status(401).json({ error: "You must use a getaiu.com or insurehut.com email address to log in" })
         }
 
         console.log("getting firebase user")

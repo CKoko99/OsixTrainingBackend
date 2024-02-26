@@ -4,6 +4,16 @@ import jwt from 'jsonwebtoken'
 
 const router = Router(); // Create an instance of the Router
 
+/*
+   string authInfo = impAccountId + ":" + impAccountId;
+      authInfo = Convert.ToBase64String(Encoding.UTF8.GetBytes(authInfo));
+      req.Method = "Post";
+
+*/
+const impAccountId = "365dded2-83eb-45be-9c64-bde4a2df78ba"
+const authInfo = impAccountId + ":" + impAccountId;
+const authInfoEncoded = Buffer.from(authInfo).toString('base64');
+console.log(authInfoEncoded)
 
 router.get("/signin", async (req, res) => {
     // User will send their userId in the header
@@ -24,7 +34,8 @@ router.get("/signin", async (req, res) => {
         }
         console.log(userRecord)
         //check if user email is from getaiu.com
-        if (userRecord.email.split('@')[1] !== "getaiu.com") {
+        if (userRecord.email.split('@')[1] !== "getaiu.com" || userRecord.email.split('@')[1] !== "insurehut.com"
+        ) {
             res.status(401).json({ error: "You must use a getaiu.com email address to log in" })
         } else {
             //user is valid, create a new JWT token and send it back to the user
