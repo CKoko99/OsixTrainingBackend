@@ -36,7 +36,9 @@ router.get("/signin", async (req, res) => {
         //check if user email is from getaiu.com
         if (userRecord.email.split('@')[1] !== "getaiu.com" || userRecord.email.split('@')[1] !== "insurehut.com"
         ) {
-            res.status(401).json({ error: "You must use a getaiu.com email address to log in" })
+            console.log("User email is not from getaiu.com or insurehut.com")
+            console.log(userRecord.email)
+            res.status(401).json({ error: "You must use a getaiu.com or insurehut.com email address to log in" })
         } else {
             //user is valid, create a new JWT token and send it back to the user
             const token = jwt.sign({ userId: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
