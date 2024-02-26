@@ -34,7 +34,7 @@ router.get("/signin", async (req, res) => {
         }
         console.log(userRecord)
         //check if user email is from getaiu.com
-        if (userRecord.email.split('@')[1] !== "getaiu.com" || userRecord.email.split('@')[1] !== "insurehut.com"
+        if (userRecord.email.split('@')[1] !== "getaiu.com" && userRecord.email.split('@')[1] !== "insurehut.com"
         ) {
             console.log("User email is not from getaiu.com or insurehut.com")
             console.log(userRecord.email)
