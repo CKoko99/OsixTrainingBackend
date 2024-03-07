@@ -232,7 +232,9 @@ app.post("/add-row", async (request, response) => {
 
   //Sheet Header Data
   try {
-    await addRowToSheet(request.body[request.body.length - 1][1], sheetHeader, row);
+    if (process.env.NODE_ENV !== 'DEV') {
+      await addRowToSheet(request.body[request.body.length - 1][1], sheetHeader, row);
+    }
     return response.json({ message: "Row added successfully" }).status(200);
   } catch (error) {
     console.log(error)
@@ -261,9 +263,9 @@ const setFilePublicAccess = async (fileId) => {
 const CHUNKS = {};
 
 app.post('/upload', async (req, res) => {
+  const { name, currentChunkIndex, totalChunks } = req.query;
   try {
     console.log("reached upload")
-    const { name, currentChunkIndex, totalChunks } = req.query;
     const lastChunk = parseInt(currentChunkIndex) === parseInt(totalChunks) - 1;
     const ext = name.split('.').pop();
     const data = req.body.toString().split(',')[1];
