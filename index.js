@@ -264,6 +264,18 @@ const setFilePublicAccess = async (fileId) => {
 
 const CHUNKS = {};
 
+// Every hour, delete chunks older than 5 minutes
+
+setInterval(() => {
+  console.log('Running Batch Deletion at ' + Date.now())
+  for (const key in CHUNKS) {
+    if (Date.now() - CHUNKS[key].time > 300000) {
+      console.log(`Deleting ${key} from memory`)
+      delete CHUNKS[key];
+    }
+  }
+}, 3600000);
+
 app.post('/upload', async (req, res) => {
   const { name, currentChunkIndex, totalChunks } = req.query;
   try {
@@ -276,6 +288,7 @@ app.post('/upload', async (req, res) => {
     // Store the chunk in an array based on the chunk index
     if (!CHUNKS[name]) {
       CHUNKS[name] = [];
+      CHUNKS[name].time = Date.now();
     }
     CHUNKS[name][currentChunkIndex] = buffer;
 
