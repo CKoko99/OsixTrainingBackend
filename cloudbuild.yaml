@@ -1,22 +1,41 @@
 steps:
-    - name: "gcr.io/cloud-builders/docker"
-      args:
-          [
-              "build",
-              "-t",
-              "gcr.io/osix-training-auth/osixtrainingbackend:$SHORT_SHA",
-              ".",
-          ]
-    - name: "gcr.io/cloud-builders/docker"
-      args: ["push", "gcr.io/osix-training-auth/osixtrainingbackend:$SHORT_SHA"]
-    - name: "gcr.io/cloud-builders/gcloud"
-      args:
-          [
-              "beta",
-              "run",
-              "deploy",
-              "osixtrainingbackend",
-              "--region=us-east1",
-              "--platform=managed",
-              "--image=gcr.io/osix-training-auth/osixtrainingbackend:$SHORT_SHA",
-          ]
+  # Check if the Artifact Registry repository exists
+  - name: "gcr.io/cloud-builders/gcloud"
+    entrypoint: bash
+    args:
+      - "-c"
+      - |
+        if gcloud artifacts repositories describe ${_SERVICE_NAME} --location=us-central1 --project=osix-training-auth >/dev/null 2>&1; then
+          echo "Repository exists."
+        else
+          echo "Repository does not exist. Creating..."
+          gcloud artifacts repositories create ${_SERVICE_NAME} --repository-format=docker \
+            --location=us-central1 --project=osix-training-auth
+        fi
+  # Build and push the Docker image
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "us-central1-docker.pkg.dev/osix-training-auth/${_SERVICE_NAME}/${_SERVICE_NAME}:$SHORT_SHA",
+        ".",
+      ]
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "us-central1-docker.pkg.dev/osix-training-auth/${_SERVICE_NAME}/${_SERVICE_NAME}:$SHORT_SHA",
+      ]
+  # Deploy the image to Cloud Run
+  - name: "gcr.io/cloud-builders/gcloud"
+    args:
+      [
+        "beta",
+        "run",
+        "deploy",
+        "${_SERVICE_NAME}",
+        "--region=us-east1",
+        "--platform=managed",
+        "--image=us-central1-docker.pkg.dev/osix-training-auth/${_SERVICE_NAME}/${_SERVICE_NAME}:$SHORT_SHA",
+      ]
