@@ -38,8 +38,9 @@ router.get('/:userID/email', async (req, res) => {
                         emailList.push(...regionDoc.data().emails);
                     }
                     if (district.emails) {
-                        console.log(district.emails);
-                        emailList.push(...district.emails);
+                        //removing district emails
+                        // console.log(district.emails);
+                        // emailList.push(...district.emails);
                     }
                     if (store.emails) {
                         //removing store emails

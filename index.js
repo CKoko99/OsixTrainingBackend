@@ -135,7 +135,12 @@ app.post("/send-email", async (request, res) => {
       text: text,
       html: html
     };
-    await transport.sendMail(mailOptions)
+    if (process.env.NODE_ENV !== 'DEV') {
+      await transport.sendMail(mailOptions)
+    } else {
+      console.log("Email not sent in DEV")
+      console.log(mailOptions)
+    }
     console.log("Email sent successfully to")
     console.log(emailRecipients)
     res.status(200).send({ message: "Email sent successfully" });
